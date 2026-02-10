@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cifrado con Caos Matemático y Redes Neuronales</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Cifrado de Datos con Caos Matemático y Redes Neuronales (Ejemplo Educativo)</h1>
+    <p>Ingresa texto para cifrar. Usa la misma clave para descifrar.</p>
+    <textarea id="inputText" placeholder="Texto a cifrar/descifrar"></textarea>
+    <input type="number" id="rValue" placeholder="Valor r para mapa logístico (e.g., 3.9)" step="0.1" value="3.9">
+    <input type="number" id="x0Value" placeholder="Valor inicial x0 (e.g., 0.5)" step="0.01" value="0.5">
+    <button onclick="cifrar()">Cifrar</button>
+    <button onclick="descifrar()">Descifrar</button>
+    <div id="output"></div>
+
+    <script>
+        // Función para generar secuencia caótica usando mapa logístico
+        function generarSecuenciaCaotica(longitud, r, x0) {
+            let secuencia = [];
+            let x = x0;
+            for (let i = 0; i < longitud; i++) {
+                x = r * x * (1 - x);
+                secuencia.push(Math.floor((x * 256) % 256)); // Convertir a byte (0-255)
+            }
+            return secuencia;
+        }
+
+        // Red neuronal simple: una capa oculta con pesos aleatorios (simplificada)
+        function redNeuronalSimple(datos, pesos) {
+            // pesos es un array de números aleatorios (simulando una red entrenada)
+            return datos.map((d, i) => (d + pesos[i % pesos.length]) % 256);
+        }
+
+        // Generar pesos aleatorios para la "red neuronal"
+        let pesos = Array.from({length: 100}, () => Math.floor(Math.random() * 256));
+
+        // Función de cifrado
+        function cifrar() {
+            const texto = document.getElementById('inputText').value;
+            const r = parseFloat(document.getElementById('rValue').value);
+            const x0 = parseFloat(document.getElementById('x0Value').value);
+            const datos = Array.from(texto).map(c => c.charCodeAt(0)); // Convertir a códigos ASCII
+            const secuencia = generarSecuenciaCaotica(datos.length, r, x0);
+            const datosProcesados = redNeuronalSimple(datos, pesos);
+            const cifrado = datosProcesados.map((d, i) => d ^ secuencia[i]); // XOR
+            const resultado = String.fromCharCode(...cifrado);
+            document.getElementById('output').innerText = 'Texto cifrado: ' + btoa(resultado); // Base64 para mostrar
+        }
+
+        // Función de descifrado (igual que cifrar, ya que XOR es reversible)
+        function descifrar() {
+            const textoCifrado = document.getElementById('inputText').value;
+            const r = parseFloat(document.getElementById('rValue').value);
+            const x0 = parseFloat(document.getElementById('x0Value').value);
+            const datos = Array.from(atob(textoCifrado)).map(c => c.charCodeAt(0)); // Decodificar Base64
+            const secuencia = generarSecuenciaCaotica(datos.length, r, x0);
+            const datosProcesados = redNeuronalSimple(datos, pesos);
+            const descifrado = datosProcesados.map((d, i) => d ^ secuencia[i]); // XOR inverso
+            const resultado = String.fromCharCode(...descifrado);
+            document.getElementById('output').innerText = 'Texto descifrado: ' + resultado;
+        }
+    </script>
+</body>
+</html>
